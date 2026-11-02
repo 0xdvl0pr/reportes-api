@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 export type Rol = "coordinador" | "analista";
 
@@ -42,7 +42,14 @@ export interface Reporte {
 }
 
 export function hashPassword(password: string): string {
-  return createHash("sha256").update(password).digest("hex");
+  const salt = randomBytes(16);
+  return `${salt.toString("hex")}:${scryptSync(password, salt, 64).toString("hex")}`;
+}
+
+export function verificarPassword(password: string, guardado: string): boolean {
+  const [salt, hash] = guardado.split(":");
+  if (!salt || !hash) return false;
+  return timingSafeEqual(scryptSync(password, Buffer.from(salt, "hex"), 64), Buffer.from(hash, "hex"));
 }
 
 function semilla() {

@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { db, hashPassword, type Usuario } from "../data/db.js";
+import { db, verificarPassword, type Usuario } from "../data/db.js";
 import { AppError } from "../errors.js";
 
 export function login(email: string, password: string): { token: string; usuario: Omit<Usuario, "passwordHash"> } {
   const usuario = db.usuarios.find((u) => u.email === email);
-  if (!usuario || usuario.passwordHash !== hashPassword(password)) {
+  if (!usuario || !verificarPassword(password, usuario.passwordHash)) {
     throw new AppError(401, "credenciales", "Correo o contraseña incorrectos");
   }
   const token = randomUUID();
